@@ -90,6 +90,13 @@ def get_sigma_z(Mx, My, Ixx, Iyy, Ixy):
     return sigma_z
 
 
+def get_sigma_z_symmetric_section(Mx, My, Ixx, Iyy):
+    x_coef = My / Iyy
+    y_coef = Mx / Ixx
+    sigma_z = [x_coef, y_coef]
+    return sigma_z
+
+
 def get_sigma_z_max(sigma_z, coordinates):
     sigma_z_max, x_max, y_max = 0, 0, 0
     for i in range(0, int(np.size(coordinates)/2)):
@@ -99,6 +106,21 @@ def get_sigma_z_max(sigma_z, coordinates):
             x_max = coordinates[i, 0]
             y_max = coordinates[i, 1]
     return sigma_z_max, x_max, y_max
+
+
+def beam_with_rectangular_sections(M,angle,A,X,Y,B,H):
+    centroid = get_centroid(A, X, Y)
+    options = get_possible_max_bending_coordinates(centroid, B, H, X, Y)
+    Ixx, Iyy, Ixy = get_inertial_moments(centroid, B, H, X, Y)
+    Mx, My = get_bending_moments(M, angle)
+    sigma_z = get_sigma_z(Mx, My, Ixx, Iyy, Ixy)
+    sigma_z_max, x_max, y_max = get_sigma_z_max(sigma_z, options)
+    print(f"Centroid: {centroid[0], centroid[1]}")
+    print(f"Ixx = {round(Ixx, 2)}, Iyy = {round(Iyy,2)}, Ixy = {round(Ixy,2)}")
+    print(f"Mx = {round(Mx)}, My = {round(My)}")
+    print(f"sigma_z = {round(sigma_z[0], 2)}x + {round(sigma_z[1], 2)}y")
+    print(f"sigma_z_max = {sigma_z_max}")
+    print(f"Location of max bending: {x_max,y_max}")
 
 
 if __name__ == '__main__':
@@ -122,3 +144,4 @@ if __name__ == '__main__':
     print(f"sigma_z = {round(sigma_z[0], 2)}x + {round(sigma_z[1], 2)}y")
     print(f"sigma_z_max = {sigma_z_max}")
     print(f"Location of max bending: {x_max,y_max}")
+
