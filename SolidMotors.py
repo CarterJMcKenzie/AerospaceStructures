@@ -48,10 +48,10 @@ class Motor:
             epsilon = float(config[motor_name]['epsilon'])
             N = int(config[motor_name]['number_of_points'])
             regression_map, map_ratio = FMM.build_star_motor_2d(fidelity, outer_diameter, Ri, Rp, epsilon, N)
-            self.elapsed_time, self.thrust = FMM.burn_motor_2d(regression_map, propellant, throat_area, exit_area, dt,
+            self.elapsed_time, self.thrust, self.mass = FMM.burn_motor_2d(regression_map, propellant, throat_area, exit_area, dt,
                                                                map_ratio, height, Ri, outer_diameter, fidelity)
 
-        if geometry == "WagonWheel":
+        if geometry == "Wagon":
             Ri = float(config[motor_name]['bore_radius'])
             Rp = float(config[motor_name]['web_radius'])
             f = float(config[motor_name]['fillet_radius'])
@@ -59,7 +59,7 @@ class Motor:
             N = int(config[motor_name]['number_of_points'])
             theta = float(config[motor_name]["theta"])
             regression_map, map_ratio = FMM.build_wagon_wheel_motor_2d(fidelity, outer_diameter, Ri, Rp, f, epsilon, N, theta)
-            self.elapsed_time, self.thrust = FMM.burn_motor_2d(regression_map, propellant, throat_area, exit_area, dt,
+            self.elapsed_time, self.thrust, self.mass = FMM.burn_motor_2d(regression_map, propellant, throat_area, exit_area, dt,
                                                                map_ratio, height, Ri, outer_diameter, fidelity)
 
         if geometry == "Finocyl":
@@ -68,7 +68,7 @@ class Motor:
             fin_length = float(config[motor_name]['fin_length'])
             N = int(config[motor_name]['number_of_fins'])
             regression_map, map_ratio = FMM.build_finocyl_motor_2d(fidelity, outer_diameter, Ri, fin_width, fin_length, N)
-            self.elapsed_time, self.thrust = FMM.burn_motor_2d(regression_map, propellant, throat_area, exit_area, dt,
+            self.elapsed_time, self.thrust, self.mass = FMM.burn_motor_2d(regression_map, propellant, throat_area, exit_area, dt,
                                                                map_ratio, height, Ri, outer_diameter, fidelity)
 
         if geometry == "Custom":
@@ -79,6 +79,9 @@ class Motor:
 
     def get_thrust(self):
         thrust = self.thrust
+
+    def get_mass(self):
+        thrust = self.mass
 
 
 def plot_thrust(grain_list):
@@ -94,18 +97,32 @@ def plot_thrust(grain_list):
     plt.show()
 
 
+def plot_mass(grain_list):
+    fig, axs = plt.subplots(1, 1)
+    count = 0
+    for grain in grain_list:
+        count = count + 1
+        axs.plot(grain.elapsed_time, grain.mass, label=f"Motor: {count}")
+        axs.set_ylabel("Mass [kg]")
+        axs.set_xlabel("Time [s]")
+    plt.legend()
+    fig.savefig("Mass.png")
+    plt.show()
+
 if __name__ == '__main__':
 
     # experiment with values to change mesh fidelity and number of time steps
-    fidelity = 60  # suggested ranges--- (3d FMM: 50-150), (2d FMM: 150-1000), (analytical: Not used)
+    fidelity = 150  # suggested ranges--- (3d FMM: 50-150), (2d FMM: 150-1000), (analytical: Not used)
     dt = 0.1  # suggested range 0.01 - 0.2
 
     # set motor
     # motor list: FinocylExample, WagonOneOCCAM, TubeOCCAM, StarOneOCCAM, StarTwoOCCAM, StarNickOCCAM
-    motor1 = Motor("TubeOCCAM", dt, fidelity)
+    motor1 = Motor("WagonOneOCCAM", dt, fidelity)
 
-    # plot thrust curve for list of motors
+    # plot curves for list of motors
     plot_thrust([motor1])
+    plot_mass([motor1])
 
     thrust = motor1.get_thrust()
     time = motor1.get_time()
+    mass = motor1.get_mass()

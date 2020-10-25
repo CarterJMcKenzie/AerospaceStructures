@@ -109,10 +109,16 @@ def calculate_regression_2d(motor, map_ratio):
     return skfmm.distance(motor, map_ratio)
 
 
-def calculate_port_area_2d(self, masked_motor):
-    port_points = np.where(masked_motor == 0)
-    port_area = len(port_points[0]) * self.motor_diam ** 2 / self.fidelity ** 2
+def calculate_port_area_2d(regression_map, regression_distance, outer_diameter, fidelity):
+    port_points = np.where(regression_map < regression_distance)
+    port_area = len(port_points[0]) * outer_diameter ** 2 / fidelity ** 2
     return port_area
+
+
+def calculate_face_area_2d(regression_map, regression_distance, outer_diameter, fidelity):
+    face_points = np.where(regression_map > regression_distance)
+    face_area = len(face_points[0]) * outer_diameter ** 2 / fidelity ** 2
+    return face_area
 
 
 def map_perimeter_2d(contour, fidelity, tolerance=3):
@@ -324,9 +330,11 @@ def burn_motor_2d(regression_map, propellant, throat_area, exit_area, dt, map_ra
     exit_temp = calculate_nozzle_exit_temp(T, gamma, exit_mach)
     exit_velocity = calculate_nozzle_exit_velocity(exit_mach, gamma, R, exit_temp)
     burning_area = calculate_burning_area_2d(regression_map, regression_depth, height, map_ratio, fidelity)
+    initial_mass = propellant.density * calculate_face_area_2d(regression_map, regression_depth, outer_diameter, fidelity) * height
 
     thrust_list = np.array([0])
     elapsed_time_list = np.array([0])
+    mass_list = np.array([initial_mass])
 
     elapsed_time = 0  # start the burn at zero seconds
     max_regression = (outer_diameter - core_diameter) / 2
@@ -345,6 +353,7 @@ def burn_motor_2d(regression_map, propellant, throat_area, exit_area, dt, map_ra
         m_dot = calculate_mass_flow_rate(burning_area, burn_rate, density)
         exit_pressure = calculate_nozzle_exit_pressure(chamber_pressure, gamma, exit_mach)
         thrust = calculate_vacuum_thrust(m_dot, exit_velocity, exit_area, exit_pressure)
+        mass = propellant.density * calculate_face_area_2d(regression_map, regression_depth, outer_diameter, fidelity) * height
         elapsed_time = elapsed_time + dt
 
         if count == 1:
@@ -364,8 +373,9 @@ def burn_motor_2d(regression_map, propellant, throat_area, exit_area, dt, map_ra
         # record values
         elapsed_time_list = np.append(elapsed_time_list, elapsed_time)
         thrust_list = np.append(thrust_list, thrust)
+        mass_list = np.append(mass_list, mass)
 
-    return elapsed_time_list, thrust_list
+    return elapsed_time_list, thrust_list, mass_list
 
 
 #######################################################################
