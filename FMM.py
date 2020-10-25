@@ -308,18 +308,31 @@ def build_finocyl_motor_2d(fidelity, outer_diameter, Rb, fin_width, fin_length, 
     return regression_map, map_ratio
 
 
-def burn_motor_2d(regression_map, throat_area, a, density, c_star, gamma, n, exit_mach, exit_velocity, exit_area, dt,
-               map_ratio, motor_height, core_diameter, motor_diameter, fidelity):
-    elapsed_time = 0  # start the burn at zero seconds
+def burn_motor_2d(regression_map, propellant, throat_area, exit_area, dt, map_ratio, height, core_diameter, outer_diameter, fidelity):
+
     regression_depth = 0.0000001  # m
-    max_regression = (motor_diameter - core_diameter) / 2
-    thrust_initial = True
-    count = 0
+
+    density = propellant.density
+    a = propellant.a
+    n = propellant.n
+    T = propellant.T
+    gamma = propellant.gamma
+    c_star = propellant.c_star
+    R = propellant.R
+
+    exit_mach = calculate_exit_mach(gamma, exit_area, throat_area)
+    exit_temp = calculate_nozzle_exit_temp(T, gamma, exit_mach)
+    exit_velocity = calculate_nozzle_exit_velocity(exit_mach, gamma, R, exit_temp)
+    burning_area = calculate_burning_area_2d(regression_map, regression_depth, height, map_ratio, fidelity)
 
     thrust_list = np.array([0])
     elapsed_time_list = np.array([0])
+
+    elapsed_time = 0  # start the burn at zero seconds
+    max_regression = (outer_diameter - core_diameter) / 2
+    thrust_initial = True
+    count = 0
     burning = True
-    burning_area = calculate_burning_area_2d(regression_map, regression_depth, motor_height, map_ratio, fidelity)
     sim_start = time.time()
     while burning:
         count = count + 1
@@ -328,7 +341,7 @@ def burn_motor_2d(regression_map, throat_area, a, density, c_star, gamma, n, exi
         chamber_pressure = calculate_chamber_pressure(burning_area, throat_area, a, density, c_star, n)  # obsolete
         burn_rate = calculate_burn_rate(a, chamber_pressure, n)
         regression_depth = calculate_new_regression_dist(regression_depth, burn_rate, dt)
-        burning_area = calculate_burning_area_2d(regression_map, regression_depth, motor_height, map_ratio, fidelity)
+        burning_area = calculate_burning_area_2d(regression_map, regression_depth, height, map_ratio, fidelity)
         m_dot = calculate_mass_flow_rate(burning_area, burn_rate, density)
         exit_pressure = calculate_nozzle_exit_pressure(chamber_pressure, gamma, exit_mach)
         thrust = calculate_vacuum_thrust(m_dot, exit_velocity, exit_area, exit_pressure)
