@@ -120,7 +120,7 @@ def beam_with_rectangular_sections(M,angle,A,X,Y,B,H):
     print(f"Mx = {round(Mx)}, My = {round(My)}")
     print(f"sigma_z = {round(sigma_z[0], 2)}x + {round(sigma_z[1], 2)}y")
     print(f"sigma_z_max = {sigma_z_max}")
-    print(f"Location of max bending: {x_max,y_max}")
+    print(f"Location of max bending: {x_max,y_max}\n")
 
 
 if __name__ == '__main__':
@@ -132,16 +132,41 @@ if __name__ == '__main__':
     Y = [6, 1]
     B = [2, 8]
     H = [8, 2]
-    centroid = get_centroid(A, X, Y)
-    options = get_possible_max_bending_coordinates(centroid, B, H, X, Y)
-    Ixx, Iyy, Ixy = get_inertial_moments(centroid, B, H, X, Y)
-    Mx, My = get_bending_moments(M, angle)
-    sigma_z = get_sigma_z(Mx, My, Ixx, Iyy, Ixy)
-    sigma_z_max, x_max, y_max = get_sigma_z_max(sigma_z, options)
-    print(f"Centroid: {centroid[0], centroid[1]}")
-    print(f"Ixx = {round(Ixx, 2)}, Iyy = {round(Iyy,2)}, Ixy = {round(Ixy,2)}")
-    print(f"Mx = {round(Mx)}, My = {round(My)}")
-    print(f"sigma_z = {round(sigma_z[0], 2)}x + {round(sigma_z[1], 2)}y")
-    print(f"sigma_z_max = {sigma_z_max}")
-    print(f"Location of max bending: {x_max,y_max}")
+    beam_with_rectangular_sections(M, angle, A, X, Y, B, H)
 
+    # I section
+    M, angle = (50**2 + 50**2)**0.5 * 10 ** 6, 45
+    A = [200*20, 260*25, 200*20]
+    X = [100, 100, 100]
+    Y = [10, 150, 290]
+    B = [200, 25, 200]
+    H = [20, 260, 20]
+    beam_with_rectangular_sections(M, angle, A, X, Y, B, H)
+
+    # T section
+    M, angle = 707 * 10 ** 3, 135
+    A = [20, 20]
+    X = [1, 7]
+    Y = [5, 5]
+    B = [2, 10]
+    H = [10, 2]
+    beam_with_rectangular_sections(M, angle, A, X, Y, B, H)
+
+    # angle purlin
+    M, angle = 3000 * 10 ** 3, 60
+    A = [1150, 1000]
+    X = [5, 50]
+    Y = [115/2, 120]
+    B = [10, 100]
+    H = [115, 10]
+    beam_with_rectangular_sections(M, angle, A, X, Y, B, H)
+
+
+    # midterm check
+    M, angle = 707 * 10 ** 3, -45
+    A = [400, 400]
+    X = [5, 20]
+    Y = [20, 45]
+    B = [10, 40]
+    H = [40, 10]
+    beam_with_rectangular_sections(M, angle, A, X, Y, B, H)

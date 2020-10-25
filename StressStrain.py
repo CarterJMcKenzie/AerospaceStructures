@@ -2,6 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def brinell_hardness(F, D, d):
+    """F = applied force, D = diameter indentor, d = diameter depression"""
+    HB = 2 * F / (np.pi* D * (D - (D ** 2 - d ** 2)))
+    return HB
+
+
 def mohrs_circle_stress(sigma_x, sigma_y, tau_xy, theta, disp=False):
     oc = (sigma_x + sigma_y)/2
     radius = 0.5 * ((sigma_x-sigma_y)**2 + 4*tau_xy**2)**0.5
